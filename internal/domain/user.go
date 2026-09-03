@@ -8,13 +8,15 @@ import (
 )
 
 type User struct {
-	Id        uuid.UUID
-	TenantId  uuid.UUID
-	Role      uuid.UUID  // Referencia a UserRole
-	KitchenId *uuid.UUID // Puntero porque puede ser nulo para los meseros
-	Name      string
-	PinHash   string
-	CreatedAt time.Time
+	Id           uuid.UUID
+	TenantId     uuid.UUID
+	Role         uuid.UUID  // Referencia a UserRole
+	KitchenId    *uuid.UUID // Puntero porque puede ser nulo para los meseros
+	Name         string
+	Email        *string // Puede ser nulo para meseros y chefs
+	PasswordHash *string // Puede ser nulo para meseros y chefs
+	PinHash      *string // Puede ser nulo para admins
+	CreatedAt    time.Time
 }
 
 type UserRepository interface {

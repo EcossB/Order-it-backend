@@ -51,9 +51,12 @@ CREATE TABLE users (
     role UUID REFERENCES users_role(id),
     kitchen_id UUID REFERENCES kitchens(id) ON DELETE SET NULL, -- Solo requerido para 'CHEF'
     name VARCHAR(255) NOT NULL,
-    pin_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    password_hash VARCHAR(255),
+    pin_hash VARCHAR(255), -- Ahora puede ser nulo para los admins que solo usan web
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (tenant_id, name) -- Un usuario es único solo dentro de su organización (Tenant)
+    UNIQUE (tenant_id, name), -- Un usuario es único solo dentro de su organización (Tenant)
+    UNIQUE (tenant_id, email) -- El email también debe ser único por Tenant
 );
 CREATE INDEX idx_users_tenant_id ON users(tenant_id);
 
