@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"order-it-backend/internal/domain"
 	"order-it-backend/internal/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 // TenantHandler maneja las peticiones HTTP (las entradas y salidas JSON) para los Tenants
