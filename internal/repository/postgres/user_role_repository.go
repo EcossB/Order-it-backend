@@ -4,34 +4,43 @@ import (
 	"context"
 	"errors"
 	"order-it-backend/internal/domain"
+	"order-it-backend/internal/middleware"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRoleRepository struct {
-	db *pgxpool.Pool
+	pool *pgxpool.Pool
 }
 
-func NewUserRoleRepository(db *pgxpool.Pool) domain.UserRoleRepository {
-	return &UserRoleRepository{db: db}
+func NewUserRoleRepository(pool *pgxpool.Pool) domain.UserRoleRepository {
+	return &UserRoleRepository{pool: pool}
+}
+
+func (u *UserRoleRepository) db(ctx context.Context) domain.DBTX {
+	if tx, ok := middleware.GetTx(ctx); ok {
+		return tx
+	}
+	return u.pool
 }
 
 func (u *UserRoleRepository) Create(ctx context.Context, userRole *domain.UserRole) error {
 	query := `INSERT INTO users_role (tenant_id, description) VALUES ($1, $2) RETURNING id, status, created_at;`
 
-	err := u.db.QueryRow(ctx, query, userRole.TenantId, userRole.Description).Scan(&userRole.Id, &userRole.Status, &userRole.CreatedAt)
+	err := u.db(ctx).QueryRow(ctx, query, userRole.TenantId, userRole.Description).Scan(&userRole.Id, &userRole.Status, &userRole.CreatedAt)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u *UserRoleRepository) GetById(ctx context.Context, id int) (*domain.UserRole, error) {
+func (u *UserRoleRepository) GetById(ctx context.Context, id uuid.UUID) (*domain.UserRole, error) {
 	query := `SELECT id, tenant_id, description, status, created_at FROM users_role WHERE id = $1;`
 
 	var userRole domain.UserRole
-	err := u.db.QueryRow(ctx, query, id).Scan(&userRole.Id, &userRole.TenantId, &userRole.Description, &userRole.Status, &userRole.CreatedAt)
+	err := u.db(ctx).QueryRow(ctx, query, id).Scan(&userRole.Id, &userRole.TenantId, &userRole.Description, &userRole.Status, &userRole.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -42,11 +51,11 @@ func (u *UserRoleRepository) GetById(ctx context.Context, id int) (*domain.UserR
 	return &userRole, nil
 }
 
-func (u *UserRoleRepository) GetByTenantAndDescription(ctx context.Context, tenantId int, description string) (*domain.UserRole, error) {
+func (u *UserRoleRepository) GetByTenantAndDescription(ctx context.Context, tenantId uuid.UUID, description string) (*domain.UserRole, error) {
 	query := `SELECT id, tenant_id, description, status, created_at FROM users_role WHERE tenant_id = $1 AND description = $2;`
 
 	var userRole domain.UserRole
-	err := u.db.QueryRow(ctx, query, tenantId, description).Scan(&userRole.Id, &userRole.TenantId, &userRole.Description, &userRole.Status, &userRole.CreatedAt)
+	err := u.db(ctx).QueryRow(ctx, query, tenantId, description).Scan(&userRole.Id, &userRole.TenantId, &userRole.Description, &userRole.Status, &userRole.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -57,12 +66,11 @@ func (u *UserRoleRepository) GetByTenantAndDescription(ctx context.Context, tena
 	return &userRole, nil
 }
 
-func (u *UserRoleRepository) GetAllByTenantId(ctx context.Context, tenantId int) ([]*domain.UserRole, error) {
-	// Ahora filtramos por tenant_id
+func (u *UserRoleRepository) GetAllByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*domain.UserRole, error) {
 	query := `SELECT id, tenant_id, description, status, created_at FROM users_role WHERE status = 1 AND tenant_id = $1;`
 
 	var userRoles []*domain.UserRole
-	rows, err := u.db.Query(ctx, query, tenantId)
+	rows, err := u.db(ctx).Query(ctx, query, tenantId)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +90,7 @@ func (u *UserRoleRepository) GetAllByTenantId(ctx context.Context, tenantId int)
 func (u *UserRoleRepository) Update(ctx context.Context, userRole *domain.UserRole) error {
 	query := `UPDATE users_role SET description = $1 WHERE id = $2 AND tenant_id = $3;`
 
-	commandTag, err := u.db.Exec(ctx, query, userRole.Description, userRole.Id, userRole.TenantId)
+	commandTag, err := u.db(ctx).Exec(ctx, query, userRole.Description, userRole.Id, userRole.TenantId)
 	if err != nil {
 		return err
 	}
@@ -93,9 +101,9 @@ func (u *UserRoleRepository) Update(ctx context.Context, userRole *domain.UserRo
 	return nil
 }
 
-func (u *UserRoleRepository) Delete(ctx context.Context, id int) error {
+func (u *UserRoleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `UPDATE users_role SET status = 0 WHERE id = $1;`
-	commandTag, err := u.db.Exec(ctx, query, id)
+	commandTag, err := u.db(ctx).Exec(ctx, query, id)
 	if err != nil {
 		return err
 	}

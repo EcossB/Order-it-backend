@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	httphandler "order-it-backend/internal/handler/http"
+	"order-it-backend/internal/middleware"
 	"order-it-backend/internal/repository/postgres"
 	"order-it-backend/internal/service"
 )
@@ -36,17 +37,20 @@ func main() {
 	// Capa 1: Repositorios (Hablan con la BD)
 	tenantRepo := postgres.NewTenantRepository(dbPool)
 	userRoleRepo := postgres.NewUserRoleRepository(dbPool)
+	kitchenRepo := postgres.NewKitchenRepository(dbPool)
 
 	// Capa 2: Servicios (Lógica de Negocio)
 	tenantService := service.NewTenantService(tenantRepo)
 	userRoleService := service.NewUserRoleService(userRoleRepo, tenantRepo)
+	kitchenService := service.NewKitchenService(kitchenRepo, tenantRepo)
 
 	// Capa 3: Handlers (Reciben peticiones HTTP y hablan con el Servicio)
 	tenantHandler := httphandler.NewTenantHandler(tenantService)
 	userRoleHandler := httphandler.NewUserRoleHandler(userRoleService)
+	kitchenHandler := httphandler.NewKitchenHandler(kitchenService)
 
 	// Capa 4: Enrutador Centralizado
-	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler)
+	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler, kitchenHandler)
 
 	// 3. Configuración de Rutas (Router) con GIN
 	router := gin.Default()
@@ -60,6 +64,7 @@ func main() {
 
 	// Grupo de rutas principal de la API
 	api := router.Group("/api")
+	api.Use(middleware.TransactionMiddleware(dbPool))
 	{
 		// Registramos todas las rutas a través de nuestro archivo router.go
 		appRouter.RegisterRoutes(api)
@@ -68,6 +73,7 @@ func main() {
 	// 4. Iniciar Servidor HTTP
 	port := ":8080"
 	fmt.Printf("Servidor backend corriendo en http://localhost%s...\n", port)
+
 	if err := router.Run(port); err != nil {
 		log.Fatalf("Error iniciando el servidor: %v\n", err)
 	}

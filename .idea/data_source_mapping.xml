@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/internal/repository/postgres/kitchen_repository.go" value="631b8536-1ebc-4e4f-a57f-2af42fbc809e" />
     <file url="file://$PROJECT_DIR$/internal/repository/postgres/tenant_repository.go" value="631b8536-1ebc-4e4f-a57f-2af42fbc809e" />
     <file url="file://$PROJECT_DIR$/internal/repository/postgres/user_role_repository.go" value="631b8536-1ebc-4e4f-a57f-2af42fbc809e" />
   </component>

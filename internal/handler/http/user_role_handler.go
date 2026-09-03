@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"order-it-backend/internal/domain"
 	"order-it-backend/internal/service"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserRoleHandler struct {
@@ -19,13 +19,13 @@ func NewUserRoleHandler(service *service.UserRoleService) *UserRoleHandler {
 }
 
 type UserRoleRequest struct {
-	TenantId    int    `json:"tenant_id" binding:"required"`
-	Description string `json:"description" binding:"required"`
+	TenantId    uuid.UUID `json:"tenant_id" binding:"required"`
+	Description string    `json:"description" binding:"required"`
 }
 
 type UserRoleResponse struct {
-	Id          int       `json:"id"`
-	TenantId    int       `json:"tenant_id"`
+	Id          uuid.UUID `json:"id"`
+	TenantId    uuid.UUID `json:"tenant_id"`
 	Description string    `json:"description"`
 	Status      int       `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -61,11 +61,10 @@ func (h *UserRoleHandler) CreateRole(c *gin.Context) {
 }
 
 func (h *UserRoleHandler) GetAllRoles(c *gin.Context) {
-	// Como es un GET, sacamos el tenant_id de la URL (ej: /api/roles?tenant_id=1)
 	tenantIdStr := c.Query("tenant_id")
-	tenantId, err := strconv.Atoi(tenantIdStr)
+	tenantId, err := uuid.Parse(tenantIdStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "el parámetro tenant_id es requerido en la URL (ej: ?tenant_id=1)"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "el parámetro tenant_id es requerido y debe ser UUID"})
 		return
 	}
 
@@ -90,7 +89,7 @@ func (h *UserRoleHandler) GetAllRoles(c *gin.Context) {
 }
 
 func (h *UserRoleHandler) GetRoleById(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
@@ -114,9 +113,9 @@ func (h *UserRoleHandler) GetRoleById(c *gin.Context) {
 }
 
 func (h *UserRoleHandler) UpdateRole(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "el id debe ser un número entero"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "el id debe ser un UUID válido"})
 		return
 	}
 
@@ -142,9 +141,9 @@ func (h *UserRoleHandler) UpdateRole(c *gin.Context) {
 }
 
 func (h *UserRoleHandler) DeleteRole(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "el id debe ser un número entero"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "el id debe ser un UUID válido"})
 		return
 	}
 

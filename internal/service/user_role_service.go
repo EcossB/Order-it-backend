@@ -5,6 +5,8 @@ import (
 	"errors"
 	"order-it-backend/internal/domain"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type UserRoleService struct {
@@ -21,8 +23,7 @@ func NewUserRoleService(repository domain.UserRoleRepository, tenantRepo domain.
 }
 
 func (service *UserRoleService) CreateUserRole(ctx context.Context, userRole *domain.UserRole) (*domain.UserRole, error) {
-
-	if userRole.TenantId <= 0 {
+	if userRole.TenantId == uuid.Nil {
 		return nil, errors.New("el ID del tenant es obligatorio")
 	}
 
@@ -58,29 +59,29 @@ func (service *UserRoleService) CreateUserRole(ctx context.Context, userRole *do
 	return userRole, nil
 }
 
-func (service *UserRoleService) DeleteUserRole(ctx context.Context, id int) error {
-	if id <= 0 {
+func (service *UserRoleService) DeleteUserRole(ctx context.Context, id uuid.UUID) error {
+	if id == uuid.Nil {
 		return errors.New("id de rol de usuario inválido")
 	}
 	return service.repository.Delete(ctx, id)
 }
 
-func (service *UserRoleService) GetUserRoleById(ctx context.Context, id int) (*domain.UserRole, error) {
-	if id <= 0 {
+func (service *UserRoleService) GetUserRoleById(ctx context.Context, id uuid.UUID) (*domain.UserRole, error) {
+	if id == uuid.Nil {
 		return nil, errors.New("id de rol de usuario inválido")
 	}
 	return service.repository.GetById(ctx, id)
 }
 
-func (service *UserRoleService) GetAllUserRolesByTenantId(ctx context.Context, tenantId int) ([]*domain.UserRole, error) {
-	if tenantId <= 0 {
+func (service *UserRoleService) GetAllUserRolesByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*domain.UserRole, error) {
+	if tenantId == uuid.Nil {
 		return nil, errors.New("el ID del tenant es obligatorio")
 	}
 	return service.repository.GetAllByTenantId(ctx, tenantId)
 }
 
 func (service *UserRoleService) UpdateUserRole(ctx context.Context, userRole *domain.UserRole) error {
-	if userRole.Id <= 0 || userRole.TenantId <= 0 {
+	if userRole.Id == uuid.Nil || userRole.TenantId == uuid.Nil {
 		return errors.New("el ID del rol y del tenant son obligatorios")
 	}
 

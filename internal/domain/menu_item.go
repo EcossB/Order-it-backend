@@ -3,11 +3,14 @@ package domain
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type MenuItem struct {
-	Id          int
-	KitchenId   int
+	Id          uuid.UUID
+	TenantId    uuid.UUID
+	KitchenId   *uuid.UUID // Asumiendo que puede ser nulo, o uuid.UUID si no
 	Name        string
 	Description string
 	Price       float64
@@ -16,8 +19,8 @@ type MenuItem struct {
 
 type MenuItemRepository interface {
 	Create(ctx context.Context, menuItem *MenuItem) error
-	GetById(ctx context.Context, id int) (*MenuItem, error)
-	GetAll(ctx context.Context) ([]*MenuItem, error)
+	GetById(ctx context.Context, id uuid.UUID) (*MenuItem, error)
+	GetAllByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*MenuItem, error)
 	Update(ctx context.Context, menuItem *MenuItem) error
-	Delete(ctx context.Context, id int) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }

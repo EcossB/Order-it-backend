@@ -2,75 +2,84 @@ package httphandler
 
 import (
 	"net/http"
-	"strconv"
+	"time"
 
 	"order-it-backend/internal/domain"
 	"order-it-backend/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-// TenantHandler maneja las peticiones HTTP (las entradas y salidas JSON) para los Tenants
 type TenantHandler struct {
 	service *service.TenantService
 }
 
-// NewTenantHandler inicializa el handler inyectando el servicio
 func NewTenantHandler(service *service.TenantService) *TenantHandler {
-	return &TenantHandler{
-		service: service,
-	}
+	return &TenantHandler{service: service}
 }
 
-// CreateTenantRequest define exactamente qué campos esperamos recibir en el JSON.
-// Esto nos protege de recibir basura en la petición.
-type CreateTenantRequest struct {
+type TenantRequest struct {
 	Name string `json:"name" binding:"required"`
 	Type string `json:"type" binding:"required"`
 }
 
-func (h *TenantHandler) Create(c *gin.Context) {
-	var req CreateTenantRequest
+type TenantResponse struct {
+	Id        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"created_at"`
+}
 
-	// 1. "Parsear" y Validar el JSON: Gin se encarga de revisar que vengan los campos required.
+func (h *TenantHandler) Create(c *gin.Context) {
+	var req TenantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido o faltan campos obligatorios"})
 		return
 	}
 
-	// 2. Mapear del "Request" a nuestro Struct de Dominio
 	tenant := &domain.Tenant{
 		Name: req.Name,
 		Type: req.Type,
 	}
 
-	// 3. Pasar el control a la capa de Negocio (Servicio)
-	// Extraemos el context nativo con c.Request.Context() para mandarlo a la base de datos
 	if err := h.service.CreateTenant(c.Request.Context(), tenant); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// 4. Devolver la respuesta exitosa (Gin automáticamente lo convierte a JSON)
-	c.JSON(http.StatusCreated, tenant)
+	c.JSON(http.StatusCreated, TenantResponse{
+		Id:        tenant.Id,
+		Name:      tenant.Name,
+		Type:      tenant.Type,
+		CreatedAt: tenant.CreatedAt,
+	})
 }
 
 func (h *TenantHandler) GetAll(c *gin.Context) {
 	tenants, err := h.service.GetAllTenants(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener las organizaciones"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, tenants)
+	var response []TenantResponse
+	for _, t := range tenants {
+		response = append(response, TenantResponse{
+			Id:        t.Id,
+			Name:      t.Name,
+			Type:      t.Type,
+			CreatedAt: t.CreatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *TenantHandler) GetById(c *gin.Context) {
-	// Extraer el ID de la URL (ej. /api/tenants/5)
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "El ID debe ser un número entero válido"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido, debe ser un UUID"})
 		return
 	}
 
@@ -80,18 +89,22 @@ func (h *TenantHandler) GetById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, tenant)
+	c.JSON(http.StatusOK, TenantResponse{
+		Id:        tenant.Id,
+		Name:      tenant.Name,
+		Type:      tenant.Type,
+		CreatedAt: tenant.CreatedAt,
+	})
 }
 
 func (h *TenantHandler) Update(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "El ID debe ser un número entero válido"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido, debe ser un UUID"})
 		return
 	}
 
-	var req CreateTenantRequest
+	var req TenantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido o faltan campos obligatorios"})
 		return
@@ -112,10 +125,9 @@ func (h *TenantHandler) Update(c *gin.Context) {
 }
 
 func (h *TenantHandler) Delete(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "El ID debe ser un número entero válido"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido, debe ser un UUID"})
 		return
 	}
 

@@ -8,15 +8,15 @@ import (
 type Router struct {
 	tenantHandler   *TenantHandler
 	userRoleHandler *UserRoleHandler
-	// Aquí inyectaremos los demás handlers en el futuro:
-
+	kitchenHandler  *KitchenHandler
 }
 
 // NewRouter crea una nueva instancia del enrutador
-func NewRouter(tenantHandler *TenantHandler, userRoleHandler *UserRoleHandler) *Router {
+func NewRouter(tenantHandler *TenantHandler, userRoleHandler *UserRoleHandler, kitchenHandler *KitchenHandler) *Router {
 	return &Router{
 		tenantHandler:   tenantHandler,
 		userRoleHandler: userRoleHandler,
+		kitchenHandler:  kitchenHandler,
 	}
 }
 
@@ -43,9 +43,12 @@ func (r *Router) RegisterRoutes(api *gin.RouterGroup) {
 
 	}
 
-	// --- Futuras Rutas (ej. Users) ---
-	// users := api.Group("/users")
-	// {
-	//     users.POST("", r.userHandler.Create)
-	// }
+	kitchens := api.Group("/kitchens")
+	{
+		kitchens.POST("", r.kitchenHandler.Create)
+		kitchens.GET("", r.kitchenHandler.GetAll)
+		kitchens.GET("/:id", r.kitchenHandler.GetById)
+		kitchens.PUT("/:id", r.kitchenHandler.Update)
+		kitchens.DELETE("/:id", r.kitchenHandler.Delete)
+	}
 }

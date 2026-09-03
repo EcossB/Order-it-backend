@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"order-it-backend/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // TenantService contiene la lógica de negocio (casos de uso) para las organizaciones
@@ -37,8 +39,8 @@ func (s *TenantService) CreateTenant(ctx context.Context, tenant *domain.Tenant)
 	return s.repo.Create(ctx, tenant)
 }
 
-func (s *TenantService) GetTenantById(ctx context.Context, id int) (*domain.Tenant, error) {
-	if id <= 0 {
+func (s *TenantService) GetTenantById(ctx context.Context, id uuid.UUID) (*domain.Tenant, error) {
+	if id == uuid.Nil {
 		return nil, errors.New("id de organización inválido")
 	}
 	return s.repo.GetById(ctx, id)
@@ -49,7 +51,7 @@ func (s *TenantService) GetAllTenants(ctx context.Context) ([]*domain.Tenant, er
 }
 
 func (s *TenantService) UpdateTenant(ctx context.Context, tenant *domain.Tenant) error {
-	if tenant.Id <= 0 {
+	if tenant.Id == uuid.Nil {
 		return errors.New("id de organización inválido")
 	}
 
@@ -66,8 +68,8 @@ func (s *TenantService) UpdateTenant(ctx context.Context, tenant *domain.Tenant)
 	return s.repo.Update(ctx, tenant)
 }
 
-func (s *TenantService) DeleteTenant(ctx context.Context, id int) error {
-	if id <= 0 {
+func (s *TenantService) DeleteTenant(ctx context.Context, id uuid.UUID) error {
+	if id == uuid.Nil {
 		return errors.New("id de organización inválido")
 	}
 	// Aquí podrías agregar más lógica de negocio, por ejemplo:
