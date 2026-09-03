@@ -19,7 +19,7 @@ func main() {
 	// 1. Configuración de Base de Datos
 	// Usamos pgxpool para manejar un pool de conexiones concurrentes, ideal para WebSockets.
 	dbURL := "postgres://postgres:coss2003@localhost:5432/order_it"
-	
+
 	ctx := context.Background()
 	dbPool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
@@ -32,22 +32,25 @@ func main() {
 
 	// 2. Inyección de Dependencias (Dependency Injection)
 	// Aquí conectamos todas las capas de la Clean Architecture.
-	
+
 	// Capa 1: Repositorios (Hablan con la BD)
 	tenantRepo := postgres.NewTenantRepository(dbPool)
+	userRoleRepo := postgres.NewUserRoleRepository(dbPool)
 
 	// Capa 2: Servicios (Lógica de Negocio)
 	tenantService := service.NewTenantService(tenantRepo)
+	userRoleService := service.NewUserRoleService(userRoleRepo, tenantRepo)
 
 	// Capa 3: Handlers (Reciben peticiones HTTP y hablan con el Servicio)
 	tenantHandler := httphandler.NewTenantHandler(tenantService)
+	userRoleHandler := httphandler.NewUserRoleHandler(userRoleService)
 
 	// Capa 4: Enrutador Centralizado
-	appRouter := httphandler.NewRouter(tenantHandler)
+	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler)
 
 	// 3. Configuración de Rutas (Router) con GIN
 	router := gin.Default()
-	
+
 	// Ruta de ejemplo (Health Check)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
