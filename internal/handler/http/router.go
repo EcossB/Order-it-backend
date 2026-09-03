@@ -6,16 +6,17 @@ import (
 
 // Router agrupa todos los handlers y se encarga exclusivamente de definir las rutas
 type Router struct {
-	tenantHandler *TenantHandler
+	tenantHandler   *TenantHandler
+	userRoleHandler *UserRoleHandler
 	// Aquí inyectaremos los demás handlers en el futuro:
-	// userHandler   *UserHandler
-	// orderHandler  *OrderHandler
+
 }
 
 // NewRouter crea una nueva instancia del enrutador
-func NewRouter(tenantHandler *TenantHandler) *Router {
+func NewRouter(tenantHandler *TenantHandler, userRoleHandler *UserRoleHandler) *Router {
 	return &Router{
-		tenantHandler: tenantHandler,
+		tenantHandler:   tenantHandler,
+		userRoleHandler: userRoleHandler,
 	}
 }
 
@@ -30,6 +31,16 @@ func (r *Router) RegisterRoutes(api *gin.RouterGroup) {
 		tenants.GET("/:id", r.tenantHandler.GetById)
 		tenants.PUT("/:id", r.tenantHandler.Update)
 		tenants.DELETE("/:id", r.tenantHandler.Delete)
+	}
+
+	roles := api.Group("/roles")
+	{
+		roles.POST("", r.userRoleHandler.CreateRole)
+		roles.GET("", r.userRoleHandler.GetAllRoles)
+		roles.GET("/:id", r.userRoleHandler.GetRoleById)
+		roles.PUT("/:id", r.userRoleHandler.UpdateRole)
+		roles.DELETE("/:id", r.userRoleHandler.DeleteRole)
+
 	}
 
 	// --- Futuras Rutas (ej. Users) ---
