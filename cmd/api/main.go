@@ -38,19 +38,25 @@ func main() {
 	tenantRepo := postgres.NewTenantRepository(dbPool)
 	userRoleRepo := postgres.NewUserRoleRepository(dbPool)
 	kitchenRepo := postgres.NewKitchenRepository(dbPool)
+	tableRepo := postgres.NewTableRepository(dbPool)
+	menuItemRepo := postgres.NewMenuItemRepository(dbPool)
 
 	// Capa 2: Servicios (Lógica de Negocio)
 	tenantService := service.NewTenantService(tenantRepo)
 	userRoleService := service.NewUserRoleService(userRoleRepo, tenantRepo)
 	kitchenService := service.NewKitchenService(kitchenRepo, tenantRepo)
+	tableService := service.NewTableService(tableRepo, tenantRepo)
+	menuItemService := service.NewMenuItemService(menuItemRepo, tenantRepo, kitchenRepo)
 
 	// Capa 3: Handlers (Reciben peticiones HTTP y hablan con el Servicio)
 	tenantHandler := httphandler.NewTenantHandler(tenantService)
 	userRoleHandler := httphandler.NewUserRoleHandler(userRoleService)
 	kitchenHandler := httphandler.NewKitchenHandler(kitchenService)
+	tableHandler := httphandler.NewTableHandler(tableService)
+	menuItemHandler := httphandler.NewMenuItemHandler(menuItemService)
 
 	// Capa 4: Enrutador Centralizado
-	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler, kitchenHandler)
+	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler, kitchenHandler, tableHandler, menuItemHandler)
 
 	// 3. Configuración de Rutas (Router) con GIN
 	router := gin.Default()
