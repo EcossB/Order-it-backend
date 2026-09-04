@@ -9,14 +9,22 @@ type Router struct {
 	tenantHandler   *TenantHandler
 	userRoleHandler *UserRoleHandler
 	kitchenHandler  *KitchenHandler
+	tableHandler    *TableHandler
+	menuItemHandler *MenuItemHandler
 }
 
 // NewRouter crea una nueva instancia del enrutador
-func NewRouter(tenantHandler *TenantHandler, userRoleHandler *UserRoleHandler, kitchenHandler *KitchenHandler) *Router {
+func NewRouter(tenantHandler *TenantHandler,
+	userRoleHandler *UserRoleHandler,
+	kitchenHandler *KitchenHandler,
+	tableHandler *TableHandler,
+	menuItemHandler *MenuItemHandler) *Router {
 	return &Router{
 		tenantHandler:   tenantHandler,
 		userRoleHandler: userRoleHandler,
 		kitchenHandler:  kitchenHandler,
+		tableHandler:    tableHandler,
+		menuItemHandler: menuItemHandler,
 	}
 }
 
@@ -50,5 +58,24 @@ func (r *Router) RegisterRoutes(api *gin.RouterGroup) {
 		kitchens.GET("/:id", r.kitchenHandler.GetById)
 		kitchens.PUT("/:id", r.kitchenHandler.Update)
 		kitchens.DELETE("/:id", r.kitchenHandler.Delete)
+	}
+
+	tables := api.Group("/tables")
+	{
+		tables.POST("", r.tableHandler.Create)
+		tables.GET("", r.tableHandler.GetAll)
+		tables.GET("/:id", r.tableHandler.GetById)
+		tables.PUT("/:id", r.tableHandler.Update)
+		tables.PATCH("/:id/status", r.tableHandler.UpdateStatus)
+		tables.DELETE("/:id", r.tableHandler.Delete)
+	}
+
+	menuItems := api.Group("/menu-items")
+	{
+		menuItems.POST("", r.menuItemHandler.Create)
+		menuItems.GET("", r.menuItemHandler.GetAll)
+		menuItems.GET("/:id", r.menuItemHandler.GetById)
+		menuItems.PUT("/:id", r.menuItemHandler.Update)
+		menuItems.DELETE("/:id", r.menuItemHandler.Delete)
 	}
 }
