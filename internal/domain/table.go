@@ -19,6 +19,8 @@ type TableRepository interface {
 	Create(ctx context.Context, table *Table) error
 	GetById(ctx context.Context, id uuid.UUID) (*Table, error)
 	GetAllByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*Table, error)
+	GetByTenantIdAndName(ctx context.Context, tenantId uuid.UUID, name string) (*Table, error)
 	Update(ctx context.Context, table *Table) error
+	UpdateStatus(ctx context.Context, table *Table) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
