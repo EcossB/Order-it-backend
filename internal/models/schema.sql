@@ -27,10 +27,11 @@ CREATE INDEX idx_tables_tenant_id ON tables(tenant_id);
 CREATE TABLE menu_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    kitchen_id UUID REFERENCES kitchens(id) ON DELETE CASCADE,
+    kitchen_id UUID NOT NULL REFERENCES kitchens(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
+    is_available BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_menu_items_tenant_id ON menu_items(tenant_id);
