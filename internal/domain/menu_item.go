@@ -10,10 +10,11 @@ import (
 type MenuItem struct {
 	Id          uuid.UUID
 	TenantId    uuid.UUID
-	KitchenId   *uuid.UUID // Asumiendo que puede ser nulo, o uuid.UUID si no
+	KitchenId   uuid.UUID // Obligatorio en el schema
 	Name        string
 	Description string
 	Price       float64
+	IsAvailable bool
 	CreatedAt   time.Time
 }
 
