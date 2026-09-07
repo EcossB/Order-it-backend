@@ -21,6 +21,7 @@ type OrderItem struct {
 
 type OrderItemRepository interface {
 	Create(ctx context.Context, orderItem *OrderItem) error
+	CreateBulk(ctx context.Context, orderItems []*OrderItem) error
 	GetById(ctx context.Context, id uuid.UUID) (*OrderItem, error)
 	GetAllByOrderId(ctx context.Context, orderId uuid.UUID) ([]*OrderItem, error)
 	Update(ctx context.Context, orderItem *OrderItem) error

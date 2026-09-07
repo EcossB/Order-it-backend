@@ -21,6 +21,7 @@ type MenuItem struct {
 type MenuItemRepository interface {
 	Create(ctx context.Context, menuItem *MenuItem) error
 	GetById(ctx context.Context, id uuid.UUID) (*MenuItem, error)
+	GetByIds(ctx context.Context, ids []uuid.UUID) ([]*MenuItem, error)
 	GetAllByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*MenuItem, error)
 	Update(ctx context.Context, menuItem *MenuItem) error
 	Delete(ctx context.Context, id uuid.UUID) error

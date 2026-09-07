@@ -24,6 +24,7 @@ type UserRepository interface {
 	GetById(ctx context.Context, id uuid.UUID) (*User, error)
 	GetAllByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*User, error)
 	GetByTenantIdAndName(ctx context.Context, tenantId uuid.UUID, name string) (*User, error)
+	GetByTenantIdAndEmail(ctx context.Context, tenantId uuid.UUID, email string) (*User, error)
 	Update(ctx context.Context, user *User) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }

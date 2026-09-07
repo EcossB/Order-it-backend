@@ -49,6 +49,30 @@ func (r *MenuItemRepository) GetById(ctx context.Context, id uuid.UUID) (*domain
 	return &item, nil
 }
 
+func (r *MenuItemRepository) GetByIds(ctx context.Context, ids []uuid.UUID) ([]*domain.MenuItem, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	query := `SELECT id, tenant_id, kitchen_id, name, description, price, is_available, created_at FROM menu_items WHERE id = ANY($1)`
+
+	rows, err := r.db(ctx).Query(ctx, query, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*domain.MenuItem
+	for rows.Next() {
+		var item domain.MenuItem
+		if err := rows.Scan(&item.Id, &item.TenantId, &item.KitchenId, &item.Name, &item.Description, &item.Price, &item.IsAvailable, &item.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, &item)
+	}
+	return items, nil
+}
+
 func (r *MenuItemRepository) GetAllByTenantId(ctx context.Context, tenantId uuid.UUID) ([]*domain.MenuItem, error) {
 	query := `SELECT id, tenant_id, kitchen_id, name, description, price, is_available, created_at FROM menu_items WHERE tenant_id = $1`
 
