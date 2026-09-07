@@ -11,6 +11,8 @@ type Router struct {
 	kitchenHandler  *KitchenHandler
 	tableHandler    *TableHandler
 	menuItemHandler *MenuItemHandler
+	userHandler     *UserHandler
+	orderHandler    *OrderHandler
 }
 
 // NewRouter crea una nueva instancia del enrutador
@@ -18,13 +20,17 @@ func NewRouter(tenantHandler *TenantHandler,
 	userRoleHandler *UserRoleHandler,
 	kitchenHandler *KitchenHandler,
 	tableHandler *TableHandler,
-	menuItemHandler *MenuItemHandler) *Router {
+	menuItemHandler *MenuItemHandler,
+	userHandler *UserHandler,
+	orderHandler *OrderHandler) *Router {
 	return &Router{
 		tenantHandler:   tenantHandler,
 		userRoleHandler: userRoleHandler,
 		kitchenHandler:  kitchenHandler,
 		tableHandler:    tableHandler,
 		menuItemHandler: menuItemHandler,
+		userHandler:     userHandler,
+		orderHandler:    orderHandler,
 	}
 }
 
@@ -77,5 +83,24 @@ func (r *Router) RegisterRoutes(api *gin.RouterGroup) {
 		menuItems.GET("/:id", r.menuItemHandler.GetById)
 		menuItems.PUT("/:id", r.menuItemHandler.Update)
 		menuItems.DELETE("/:id", r.menuItemHandler.Delete)
+	}
+
+	users := api.Group("/users")
+	{
+		users.POST("", r.userHandler.Create)
+		users.GET("", r.userHandler.GetAll)
+		users.GET("/:id", r.userHandler.GetById)
+		users.PUT("/:id", r.userHandler.Update)
+		users.DELETE("/:id", r.userHandler.Delete)
+	}
+
+	orders := api.Group("/orders")
+	{
+		orders.POST("", r.orderHandler.Create)
+		orders.GET("", r.orderHandler.GetAll)
+		orders.GET("/:id", r.orderHandler.GetById)
+		orders.PATCH("/:id/status", r.orderHandler.UpdateStatus)
+		orders.PATCH("/items/:item_id/status", r.orderHandler.UpdateItemStatus)
+		orders.DELETE("/:id", r.orderHandler.Delete)
 	}
 }
