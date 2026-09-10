@@ -1,6 +1,8 @@
 package httphandler
 
 import (
+	"order-it-backend/internal/websockets"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,6 +15,7 @@ type Router struct {
 	menuItemHandler *MenuItemHandler
 	userHandler     *UserHandler
 	orderHandler    *OrderHandler
+	hub             *websockets.Hub
 }
 
 // NewRouter crea una nueva instancia del enrutador
@@ -22,7 +25,8 @@ func NewRouter(tenantHandler *TenantHandler,
 	tableHandler *TableHandler,
 	menuItemHandler *MenuItemHandler,
 	userHandler *UserHandler,
-	orderHandler *OrderHandler) *Router {
+	orderHandler *OrderHandler,
+	hub *websockets.Hub) *Router {
 	return &Router{
 		tenantHandler:   tenantHandler,
 		userRoleHandler: userRoleHandler,
@@ -31,6 +35,7 @@ func NewRouter(tenantHandler *TenantHandler,
 		menuItemHandler: menuItemHandler,
 		userHandler:     userHandler,
 		orderHandler:    orderHandler,
+		hub:             hub,
 	}
 }
 
@@ -103,4 +108,6 @@ func (r *Router) RegisterRoutes(api *gin.RouterGroup) {
 		orders.PATCH("/items/:item_id/status", r.orderHandler.UpdateItemStatus)
 		orders.DELETE("/:id", r.orderHandler.Delete)
 	}
+
+	api.GET("/ws", websockets.ServeWS(r.hub))
 }
