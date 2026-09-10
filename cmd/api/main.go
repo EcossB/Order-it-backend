@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"order-it-backend/internal/middleware"
+	"order-it-backend/internal/websockets"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -44,6 +45,9 @@ func main() {
 	orderRepo := postgres.NewOrderRepository(dbPool)
 	orderItemRepo := postgres.NewOrderItemRepository(dbPool)
 
+	// Capa de Tiempo Real (WebSockets)
+	wsHub := websockets.NewHub()
+
 	// Capa 2: Servicios (Lógica de Negocio)
 	tenantService := service.NewTenantService(tenantRepo)
 	userRoleService := service.NewUserRoleService(userRoleRepo, tenantRepo)
@@ -51,7 +55,7 @@ func main() {
 	tableService := service.NewTableService(tableRepo, tenantRepo)
 	menuItemService := service.NewMenuItemService(menuItemRepo, tenantRepo, kitchenRepo)
 	userService := service.NewUserService(userRepo, tenantRepo, userRoleRepo, kitchenRepo)
-	orderService := service.NewOrderService(orderRepo, orderItemRepo, menuItemRepo, tableRepo, tenantRepo)
+	orderService := service.NewOrderService(orderRepo, orderItemRepo, menuItemRepo, tableRepo, tenantRepo, wsHub)
 
 	// Capa 3: Handlers (Reciben peticiones HTTP y hablan con el Servicio)
 	tenantHandler := httphandler.NewTenantHandler(tenantService)
@@ -63,7 +67,7 @@ func main() {
 	orderHandler := httphandler.NewOrderHandler(orderService)
 
 	// Capa 4: Enrutador Centralizado
-	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler, kitchenHandler, tableHandler, menuItemHandler, userHandler, orderHandler)
+	appRouter := httphandler.NewRouter(tenantHandler, userRoleHandler, kitchenHandler, tableHandler, menuItemHandler, userHandler, orderHandler, wsHub)
 
 	// 3. Configuración de Rutas (Router) con GIN
 	router := gin.Default()
